@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xp:view
+	xmlns:xp="http://www.ibm.com/xsp/core"
+	xmlns:xe="http://www.ibm.com/xsp/coreex"
+	pageTitle="Simple DQL Explorer"
+	style="margin-top: 70px">
+
+	<xp:this.data>
+		<xe:objectData
+			var="dql"
+			createObject="#{javascript:return new eu.linqed.dql.DQLExplorer()}">
+		</xe:objectData>
+	</xp:this.data>
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+         <!--  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button> -->
+          <a class="navbar-brand" href="#">Simple DQL Explorer</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+         
+        </div>
+      </div>
+    </nav>
+
+	<xp:div
+		styleClass="container"
+		id="container">
+
+		<div class="row">
+			<div class="col-sm-4">
+				<div class="well">
+					<div>Enter a DQL query:</div>
+					<div>
+						<xp:inputText
+							id="inputText1"
+							value="#{dql.query}"></xp:inputText>
+					</div>
+
+					<div
+						style="margin-top: 10px"
+						class="row">
+						<div class="col-sm-5">
+							<xp:button
+								value="Search"
+								themeId="Button.Primary"
+								onclick="$(this).button('loading');"
+								id="button1">
+								<xp:this.attrs>
+									<xp:attr
+										name="data-loading-text"
+										value="Searching..."></xp:attr>
+								</xp:this.attrs>
+								<i class="glyphicon glyphicon-search" />
+								<xp:eventHandler
+									event="onclick"
+									submit="true"
+									refreshMode="partial"
+									refreshId="container">
+									<xp:this.action><![CDATA[#{javascript:dql.searchExplain()}]]></xp:this.action>
+								</xp:eventHandler>
+							</xp:button>
+						</div>
+						<div class="col-sm-7">
+
+							<xp:checkBox
+								text="Explain the query"
+								checkedValue="true"
+								uncheckedValue="false"
+								value="#{dql.explain}"
+								id="checkBox1">
+							</xp:checkBox>
+						</div>
+					</div>
+				</div>
+				
+				<div class="small text-muted">
+				Available fields: firstName, lastName, company, street, zip, city, language, 
+				gender, title, phone, email, car
+				</div>
+			</div>
+
+
+			<div class="col-sm-4">
+
+				Sample queries:
+
+				<ul>
+					<xp:repeat
+						id="repeat2"
+						rows="30"
+						var="sample">
+						<xp:this.value><![CDATA[#{javascript:
+[
+	{ q : 'city in (\'Amsterdam\', \'Arnhem\')', t : 'city is either one (document search)' },
+	{ q : '\'contacts\'.city in (\'Amsterdam\', \'Arnhem\')', t : 'city is either one (view column search)' },
+	{ q : 'city contains (\'Amsterdam\', \'Arnhem\')', t : 'city contains either one (using FT search, v11 feature)' },
+	{ q : 'language in all (\'German\', \'Dutch\')', t : 'language field has all of these' },
+	{ q : 'language contains all (\'German\', \'Dutch\')', t : 'language field has all of these' },
+	{ q : 'city contains (\'Tro*\')', t : 'wildcard search in field (using FT search, v11 feature)' },
+	{ q : 'contains (\'Tro*\')', t : 'wildcard search in document, all fields (using FT search, v11 feature)' }
+]
+}]]></xp:this.value>
+						<li>
+							<xp:link
+								escape="true"
+								text="#{sample.q}"
+								id="link1">
+								<xp:eventHandler
+									event="onclick"
+									submit="false">
+									<xp:this.script><![CDATA[x$('#{id:inputText1}').val("#{javascript:sample.q}")]]></xp:this.script>
+								</xp:eventHandler>
+							</xp:link>
+							<xp:text
+								tagName="div"
+								styleClass="small text-muted"
+								value="#{sample.t}"></xp:text>
+						</li>
+
+					</xp:repeat>
+				</ul>
+				
+				
+
+			</div>
+
+			<div class="col-sm-4">
+
+				<xp:button
+					value="update index"
+					id="button2">
+					<xp:eventHandler
+						event="onclick"
+						submit="true"
+						refreshMode="partial"
+						refreshId="results">
+						<xp:this.action><![CDATA[#{javascript:dql.updateIndex()}]]></xp:this.action>
+					</xp:eventHandler>
+				</xp:button>
+
+				<xp:button
+					value="list index"
+					id="button3">
+					<xp:eventHandler
+						event="onclick"
+						submit="true"
+						refreshMode="partial"
+						refreshId="results">
+						<xp:this.action><![CDATA[#{javascript:dql.listIndex()}]]></xp:this.action>
+					</xp:eventHandler>
+				</xp:button>
+			</div>
+
+
+		</div>
+
+
+		<xp:div id="results">
+
+			<!-- error -->
+			<xp:div
+				rendered="#{!empty dql.error}"
+				styleClass="alert alert-error">
+				<xp:text
+					value="#{dql.error}"
+					id="error"></xp:text>
+			</xp:div>
+
+			<xp:div
+				rendered="#{!empty dql.explainOutput}"
+				styleClass="alert alert-info">
+				<xp:text
+					value="#{dql.explainOutput}"
+					escape="false">
+					<xp:this.converter>
+						<xp:customConverter getAsObject="#{javascript:return value}">
+							<xp:this.getAsString><![CDATA[#{javascript:value.replace('\n', '<br />');}]]></xp:this.getAsString>
+						</xp:customConverter>
+					</xp:this.converter>
+				</xp:text>
+			</xp:div>
+
+			<xp:div rendered="#{!empty dql.searchResults}">
+				<h4>Query results</h4>
+
+				<div>
+					Number of results: &#160;
+					<b>
+						<xp:text value="#{dql.numResults}">
+							<xp:this.converter>
+								<xp:convertNumber
+									type="number"
+									integerOnly="true">
+								</xp:convertNumber>
+							</xp:this.converter>
+						</xp:text>
+					</b>
+				</div>
+
+				<xp:table
+					styleClass="table-condensed table-striped"
+					style="margin-top: 5px">
+					<xp:repeat
+						id="repeat1"
+						var="res"
+						rows="20"
+						value="#{dql.searchResults}">
+						<xp:tr>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('firstName')}" />
+							</xp:td>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('lastName')}" />
+							</xp:td>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('zip')}" />
+							</xp:td>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('city')}" />
+							</xp:td>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('email')}" />
+							</xp:td>
+							<xp:td>
+								<xp:text value="#{javascript:res.get('language')}" />
+							</xp:td>
+						</xp:tr>
+					</xp:repeat>
+				</xp:table>
+				<xp:pager
+					rendered="#{dql.numResults > 30}"
+					layout="Previous Group Next"
+					partialRefresh="true"
+					id="pager1"
+					for="repeat1">
+				</xp:pager>
+			</xp:div>
+
+		</xp:div>
+
+	</xp:div>
+</xp:view>

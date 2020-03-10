@@ -1,0 +1,10 @@
+
+<theme extends="bootstrap3_flat" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="platform:/plugin/com.ibm.designer.domino.stylekits/schema/stylekit.xsd" >
+	
+
+	<resource>
+		<content-type>text/css</content-type>
+		<href>overrides.css</href>
+	</resource>
+
+</theme>
